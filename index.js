@@ -1,9 +1,12 @@
 var sqlServer = require('mssql');
+var faker = require('faker');
 var connStr = {
     user: '',
     password: '',
     server: '',
     database: '',
+    requestTimeout: 0
+    //stream: true
 };
 var connection = new sqlServer.Connection(connStr);
 
@@ -36,7 +39,7 @@ connection.connect(function(err) {
     });
     */
 
-    var repeat = 5;
+    var repeat = 10000;
 
     function dbquery(i) {
         if (i < repeat) {
@@ -51,6 +54,75 @@ connection.connect(function(err) {
         }
     }
 
-    dbquery(0);
+    var queries = 0;
+    function dbquery2(next) {
+
+        for (var i = 0; i < repeat; i++) {
+            request.query(`insert into deleteme(temp) values ('${faker.random.uuid()}')`, function(err, recordset) {
+                if (err) {
+                    console.log('query failed');
+                    return;
+                }
+                if (++queries == repeat) {
+                    next();
+                }
+            });
+        }
+    }
+
+    function cb() {
+        console.log('db complete');
+    }
+
+    function dbquery3() {
+
+        for (var i = 0; i < repeat; i++) {
+            (function(it) {
+                request.query(`insert into deleteme(temp) values ('${faker.random.uuid()}')`, function(err, recordset) {
+                    if (err) {
+                        console.log('query failed');
+                        return;
+                    }
+                    console.log('Inserted for: ' + it);
+                });
+            })(i)
+        }
+    }
+
+    function dbqueryStreaming() {
+
+        request.stream = true;
+        request.query('update humanresources.employee set currentflag = 0');
+        //request.query('select * from humanresources.employee');
+
+        request.on('recordset', function(columns) {
+            console.log('recordset');
+        });
+
+        request.on('row', function(row) {
+            // Emitted for each row in a recordset
+            console.log(row);
+        });
+
+        request.on('error', function(err) {
+            console.log(err);
+        });
+
+        request.on('done', function(affected) {
+            // Always emitted as the last one
+            console.log('done');
+        });
+    }
+
+
+    //dbquery(0);
+    //dbquery2(cb);
+    //dbquery3()
+
+    dbqueryStreaming();
+
+
+
 });
+
 
