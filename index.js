@@ -1,3 +1,5 @@
+'use strict';
+
 var sqlServer = require('mssql');
 var faker = require('faker');
 var connStr = {
@@ -92,7 +94,7 @@ connection.connect(function(err) {
     function dbqueryStreaming() {
 
         request.stream = true;
-        request.query('update humanresources.employee set currentflag = 0');
+        request.query('update humanresources.employee set currentflag = 1');
         //request.query('select * from humanresources.employee');
 
         request.on('recordset', function(columns) {
@@ -110,7 +112,7 @@ connection.connect(function(err) {
 
         request.on('done', function(affected) {
             // Always emitted as the last one
-            console.log('done');
+            console.log(affected);
         });
     }
 
@@ -119,6 +121,8 @@ connection.connect(function(err) {
     //dbquery2(cb);
     //dbquery3()
 
+
+
     dbqueryStreaming();
 
 
@@ -126,3 +130,25 @@ connection.connect(function(err) {
 });
 
 
+function range(_x, _x2, _x3) {
+    var _again = true;
+
+    _function: while (_again) {
+        var s = _x,
+            e = _x2,
+            res = _x3;
+        _again = false;
+
+        res = res || [];
+        res.push(s);
+        if (s == e) {
+            return res;
+        } else {
+            _x = s < e ? ++s : --s;
+            _x2 = e;
+            _x3 = res;
+            _again = true;
+            continue _function;
+        }
+    }
+}
